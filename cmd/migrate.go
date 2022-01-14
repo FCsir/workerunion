@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"workerunion/db"
+	"workerunion/db/models"
 
 	"github.com/spf13/cobra"
 )
@@ -33,6 +35,13 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("migrate called")
+		db.SqlDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(
+			&models.User{},
+			&models.Comment{},
+			&models.SubComment{},
+			&models.User{},
+			&models.Post{},
+		)
 	},
 }
 

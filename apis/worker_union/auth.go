@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 	"path"
+	"time"
 	in "workerunion/apis/internal"
 	"workerunion/db/handlers"
 	"workerunion/db/models"
@@ -20,16 +20,15 @@ import (
 func Activate(c *gin.Context) {
 	code := c.Param("code")
 
-	log.Println("code-----", code)
-	userId := pkg.RedisClient.HGet(c, code, "user_id")
-	log.Println("code-----", userId)
-	if userId == nil {
+	userEmail, err := pkg.RedisClient.Get(c, "register:"+code).Result()
+	fmt.Println("12code-----", userEmail, err)
+	if userEmail == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "链接失效, 请重新发送邮件"})
 		return
 	}
 
 	// activate user status
-	users := handlers.FindUsers(map[string]interface{}{"id": userId})
+	users := handlers.FindUsers(map[string]interface{}{"email": userEmail})
 	if len(users) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "user no existed"})
 		return
@@ -58,16 +57,16 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// check the email duplicate
-	existed := handlers.CheckUserByEmail(form.Email)
+	existed := handlers.CheckUserByNickname(form.NickName)
 	if existed == true {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "该电邮已存在"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "该昵称已存在"})
 		return
 	}
 
-	existed = handlers.CheckUserByNickname(form.NickName)
+	// check the email duplicate
+	existed = handlers.CheckUserByEmail(form.Email)
 	if existed == true {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "该昵称已存在"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "该电邮已存在"})
 		return
 	}
 
@@ -76,6 +75,15 @@ func Register(c *gin.Context) {
 
 	absPath := path.Join(homePath, "static", "email", "activation_account.html")
 	t, err := t.ParseFiles([]string{absPath}...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	u := uuid.New()
+	code := u.String()
+	fmt.Println("email---", form.Email)
+	err = pkg.RedisClient.Set(c, "register:"+code, form.Email, 10*time.Minute).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -90,11 +98,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	u := uuid.New()
-	code := u.String()
-	pkg.RedisClient.HSet(c, code, []string{"user_id", "1"}, 10*60)
-
-	log.Println("url---", in.GetHost(c.Request))
 	activeUrl := in.GetHost(c.Request) + "/auth/activate/" + code
 
 	data := struct {
@@ -128,7 +131,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// TODO check the user existed
+	hashPassword := pkg.GetMD5Hash(form.Password)
+
+	users := handlers.FindUsers(map[string]interface{}{"password": hashPassword, "email": form.Email})
+	if len(users) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "该用户不存在"})
+		return
+	}
 
 	token, err := pkg.GenerateToken(12, form.Email)
 

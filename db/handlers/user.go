@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"workerunion/db"
 	"workerunion/db/models"
 )
@@ -16,7 +17,8 @@ func CheckUserByEmail(email string) bool {
 
 func CheckUserByNickname(nickname string) bool {
 	var users []models.User
-	db.SqlDB.Where("nickname = ?", nickname).Find(&users)
+	err := db.SqlDB.Where("nick_name = ?", nickname).Find(&users)
+	log.Println("---error: ", err)
 	if len(users) == 0 {
 		return false
 	}
