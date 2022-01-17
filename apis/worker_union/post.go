@@ -92,3 +92,7 @@ func EditPost(c *gin.Context) {
 	handlers.UpdatePost(post, data)
 	c.JSON(http.StatusOK, gin.H{"post": post})
 }
+
+func GetPostDetail(c *gin.Context) {
+
+}

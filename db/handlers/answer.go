@@ -5,6 +5,11 @@ import (
 	"workerunion/db/models"
 )
 
+func CreateAnswer(answer models.Answer) error {
+	result := db.SqlDB.Create(&answer)
+	return result.Error
+}
+
 func FindAnswers(query map[string]interface{}, orders []map[string]string, limit int, offset int) []models.Answer {
 	var answers []models.Answer
 	queryset := db.SqlDB.Where(query)
