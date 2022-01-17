@@ -17,3 +17,10 @@ func FindSubComments(query map[string]interface{}) []models.SubComment {
 
 	return comments
 }
+
+func FindSubCommentsByAnswerIds(ids []int) []models.SubComment {
+	var comments []models.SubComment
+	db.SqlDB.Where("answer_id in ?", ids).Order("created_at desc").Find(&comments)
+
+	return comments
+}

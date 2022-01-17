@@ -3,6 +3,7 @@ package worker_union
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"workerunion/db/handlers"
 	"workerunion/db/models"
 	main_in "workerunion/internal"
@@ -51,5 +52,38 @@ func PopularPosts(c *gin.Context) {
 }
 
 func ViewPost(c *gin.Context) {
+	postIdStr := c.Param("post_id")
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	posts := handlers.FindPostsByIds([]int{postId})
+	if len(posts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "not found"})
+		return
+	}
+	post := posts[0]
+	if post.Status != "publish" {
+		c.JSON(http.StatusNotFound, gin.H{"message": "close post"})
+		return
+	}
+
+	query := map[string]interface{}{
+		"post_id": post.ID,
+		"status":  "publish",
+	}
+	orders := []map[string]string{
+		{"created_at": "desc"},
+	}
+	answers := handlers.FindAnswers(query, orders, 0, 0)
+	var answerIds []int
+	for _, answer := range answers {
+		answerIds = append(answerIds, int(answer.ID))
+	}
+
+	comments := handlers.FindSubCommentsByAnswerIds(answerIds)
+
+	c.JSON(http.StatusNotFound, gin.H{"post": post, "answers": answers, "comments": comments})
 
 }

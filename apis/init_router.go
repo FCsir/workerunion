@@ -52,8 +52,10 @@ func init() {
 	post := Router.Group("/post")
 	{
 		post.POST("/:post_id/read", worker_union.ReadPost)
+		post.POST("/:post_id/view", worker_union.ViewPost)
 		post.POST("/add", worker_union.AddPost).Use(middleware.Jwt())
 		post.POST("/edit", worker_union.EditPost).Use(middleware.Jwt())
+		post.POST("/:post_id/detail", worker_union.GetPostDetail).Use(middleware.Jwt())
 	}
 
 	user := Router.Group("/user").Use(middleware.Jwt())

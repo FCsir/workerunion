@@ -3,6 +3,7 @@ package worker_union
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"workerunion/db/handlers"
 	"workerunion/db/models"
 	"workerunion/pkg"
@@ -83,6 +84,12 @@ func EditPost(c *gin.Context) {
 
 	post := posts[0]
 
+	user := c.MustGet("currentUser").(models.User)
+	if post.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{"message": "forbidden"})
+		return
+	}
+
 	data := map[string]interface{}{
 		"content": postForm.Content,
 		"title":   postForm.Title,
@@ -94,5 +101,22 @@ func EditPost(c *gin.Context) {
 }
 
 func GetPostDetail(c *gin.Context) {
-
+	postIdStr := c.Param("post_id")
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	posts := handlers.FindPostsByIds([]int{postId})
+	if len(posts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "not found"})
+		return
+	}
+	post := posts[0]
+	user := c.MustGet("currentUser").(models.User)
+	if post.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{"message": "forbidden"})
+		return
+	}
+	c.JSON(http.StatusNotFound, gin.H{"post": post})
 }
