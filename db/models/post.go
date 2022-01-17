@@ -29,5 +29,5 @@ type Post struct {
 
 	UserID uint
 
-	Comments []Comment `gorm:"foreignKey:PostID"`
+	Answers []Answer `gorm:"foreignKey:PostID"`
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"workerunion/db/handlers"
 	"workerunion/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,17 @@ func Jwt() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "token expired"})
 			c.Abort()
 		}
+
+		query := map[string]interface{}{
+			"id": claims.UserId,
+		}
+		users := handlers.FindUsers(query)
+		if len(users) == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "no account find"})
+			c.Abort()
+		}
+		user := users[0]
+		c.Set("currentUser", user)
 
 		c.Next()
 	}

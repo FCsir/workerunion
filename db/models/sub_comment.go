@@ -6,6 +6,6 @@ type SubComment struct {
 
 	Content string `gorm:"type:text"`
 
-	UserID    uint
-	CommentID uint
+	UserID   uint
+	AnswerID uint
 }

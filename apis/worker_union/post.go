@@ -3,6 +3,8 @@ package worker_union
 import (
 	"log"
 	"net/http"
+	"workerunion/db/handlers"
+	"workerunion/db/models"
 	"workerunion/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -25,4 +27,68 @@ func ReadPost(c *gin.Context) {
 
 	log.Println("-------- post id count: ", count, postId)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+type AddPostForm struct {
+	Content string `form:"content"`
+	Title   string `form:"title" binding:"required"`
+}
+
+func AddPost(c *gin.Context) {
+	var postForm AddPostForm
+	err := c.ShouldBind(&postForm)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	user := c.MustGet("currentUser").(models.User)
+	post := models.Post{
+		Status:    "draft",
+		Content:   postForm.Content,
+		Title:     postForm.Title,
+		Readcount: 0,
+		UserID:    user.ID,
+	}
+
+	if err := handlers.CreatePost(post); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"post": post})
+}
+
+type EditPostForm struct {
+	Content string `form:"content"`
+	Title   string `form:"title" binding:"required"`
+	ID      int    `form:"id" binding:"required"`
+	Status  string `form:"status" binding:"required"`
+}
+
+func EditPost(c *gin.Context) {
+	var postForm EditPostForm
+	err := c.ShouldBind(&postForm)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	// user := c.MustGet("currentUser").(models.User)
+	posts := handlers.FindPostsByIds([]int{postForm.ID})
+	if len(posts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	post := posts[0]
+
+	data := map[string]interface{}{
+		"content": postForm.Content,
+		"title":   postForm.Title,
+		"status":  postForm.Status,
+	}
+
+	handlers.UpdatePost(post, data)
+	c.JSON(http.StatusOK, gin.H{"post": post})
 }

@@ -27,6 +27,6 @@ type User struct {
 	Status userStatus `sql:"type:user_status"`
 
 	Posts       []Post       `gorm:"foreignKey:UserID"`
-	Comments    []Comment    `gorm:"foreignKey:UserID"`
+	Answers     []Answer     `gorm:"foreignKey:UserID"`
 	SubComments []SubComment `gorm:"foreignKey:UserID"`
 }

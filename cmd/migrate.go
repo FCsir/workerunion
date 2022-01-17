@@ -37,7 +37,7 @@ to quickly create a Cobra application.`,
 		fmt.Println("migrate called")
 		db.SqlDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(
 			&models.User{},
-			&models.Comment{},
+			&models.Answer{},
 			&models.SubComment{},
 			&models.User{},
 			&models.Post{},

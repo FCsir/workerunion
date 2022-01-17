@@ -52,13 +52,15 @@ func init() {
 	post := Router.Group("/post")
 	{
 		post.POST("/:post_id/read", worker_union.ReadPost)
+		post.POST("/add", worker_union.AddPost).Use(middleware.Jwt())
+		post.POST("/edit", worker_union.EditPost).Use(middleware.Jwt())
 	}
 
 	user := Router.Group("/user").Use(middleware.Jwt())
 	{
 		user.GET("/profile", worker_union.Profile)
 		user.GET("/posts", worker_union.UserPosts)
-		user.GET("/comments", worker_union.UserComments)
+		user.GET("/answers", worker_union.UserAnswers)
 		user.GET("/collect", worker_union.UserCollect)
 	}
 }

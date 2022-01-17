@@ -1,6 +1,6 @@
 package models
 
-type Comment struct {
+type Answer struct {
 	BaseModel
 	Status string
 
@@ -9,5 +9,5 @@ type Comment struct {
 	UserID uint
 	PostID uint
 
-	SubComments []SubComment `gorm:"foreignKey:CommentID"`
+	SubComments []SubComment `gorm:"foreignKey:AnswerID"`
 }
