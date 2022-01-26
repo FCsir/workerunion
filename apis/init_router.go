@@ -16,6 +16,8 @@ var Router *gin.Engine = gin.Default()
 func init() {
 
 	Router.Use(gin.Logger())
+	Router.Use(middleware.Cors())
+
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f)
 	Router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
