@@ -15,13 +15,13 @@ var Router *gin.Engine = gin.Default()
 
 func init() {
 
-	Router.Use(gin.Logger())
 	Router.Use(middleware.Cors())
 
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f)
 	Router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+		fmt.Println("----- params:", param.ErrorMessage)
+		return fmt.Sprintf("%s  1- [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
 			param.ClientIP,
 			param.TimeStamp.Format(time.RFC1123),
 			param.Method,
@@ -35,11 +35,10 @@ func init() {
 	}))
 	Router.Use(gin.Recovery())
 
-	// TODO add recovery
-
 	Router.GET("/", worker_union.PopularPosts)
 	home := Router.Group("/home")
 	{
+		home.GET("/recommend", worker_union.RecommendationPosts)
 		home.GET("/latest", worker_union.LatestPosts)
 		home.GET("/popular", worker_union.PopularPosts)
 	}
@@ -55,7 +54,7 @@ func init() {
 	{
 		post.POST("/:post_id/read", worker_union.ReadPost)
 		post.POST("/:post_id/view", worker_union.ViewPost)
-		post.POST("/add", worker_union.AddPost).Use(middleware.Jwt())
+		post.Use(middleware.Jwt()).POST("/add", worker_union.AddPost)
 		post.POST("/edit", worker_union.EditPost).Use(middleware.Jwt())
 		post.POST("/:post_id/detail", worker_union.GetPostDetail).Use(middleware.Jwt())
 	}
@@ -63,6 +62,7 @@ func init() {
 	user := Router.Group("/user").Use(middleware.Jwt())
 	{
 		user.GET("/profile", worker_union.Profile)
+		user.POST("/save_profile", worker_union.SaveProfile)
 		user.GET("/posts", worker_union.UserPosts)
 		user.GET("/answers", worker_union.UserAnswers)
 		user.GET("/collect", worker_union.UserCollect)

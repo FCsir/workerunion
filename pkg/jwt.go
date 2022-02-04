@@ -23,6 +23,14 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
+type TokenError struct {
+	msg string
+}
+
+func (e *TokenError) Error() string {
+	return e.msg
+}
+
 func ParseToken(token string) (*Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
@@ -32,6 +40,7 @@ func ParseToken(token string) (*Claims, error) {
 		if claims, ok := tokenClaims.Claims.(*Claims); ok && tokenClaims.Valid {
 			return claims, nil
 		}
+		return nil, &TokenError{msg: "token expired"}
 	}
 
 	return nil, err

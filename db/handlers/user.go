@@ -40,3 +40,14 @@ func FindUsers(userQuery map[string]interface{}) []models.User {
 func ActivateUser(user models.User) {
 	db.SqlDB.Model(&user).Update("status", "active")
 }
+
+func UpdateUser(user models.User, data map[string]interface{}) {
+	db.SqlDB.Model(&user).Updates(data)
+}
+
+func FindUsersByIds(ids []uint) []models.User {
+	var users []models.User
+	db.SqlDB.Find(&users, ids)
+
+	return users
+}

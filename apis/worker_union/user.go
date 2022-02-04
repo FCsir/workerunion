@@ -1,7 +1,9 @@
 package worker_union
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 	"workerunion/db/handlers"
 	"workerunion/db/models"
 
@@ -10,7 +12,45 @@ import (
 
 func Profile(c *gin.Context) {
 	user := c.MustGet("currentUser").(models.User)
-	c.JSON(http.StatusOK, gin.H{"data": user})
+	profile := map[string]interface{}{
+		"email":    user.Email,
+		"gender":   user.Gender,
+		"nickname": user.NickName,
+		"phone":    user.Phone,
+		"id":       user.ID,
+		"birth":    user.Birth,
+		"status":   user.Status,
+	}
+	c.JSON(http.StatusOK, gin.H{"data": profile})
+}
+
+type userProfileForm struct {
+	ID     uint   `form:"id" binding:"required"`
+	Phone  string `form:"phone"`
+	Birth  int64  `form:"birth"`
+	Gender string `form:"gender"`
+}
+
+func SaveProfile(c *gin.Context) {
+	var form userProfileForm
+	err := c.ShouldBind(&form)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	user := c.MustGet("currentUser").(models.User)
+	birth := time.Unix(form.Birth/1000, 0)
+	birthRFC := birth.Format(time.RFC3339)
+	fmt.Println("birth: ", birth, birthRFC)
+	data := map[string]interface{}{
+		"birth":  birthRFC,
+		"gender": form.Gender,
+		"phone":  form.Phone,
+	}
+	handlers.UpdateUser(user, data)
+
+	c.JSON(http.StatusOK, gin.H{"message": "update success"})
 }
 
 type userPostQuery struct {
@@ -24,7 +64,7 @@ func UserPosts(c *gin.Context) {
 	user := c.MustGet("currentUser").(models.User)
 	err := c.ShouldBindQuery(&postQuery)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -50,7 +90,7 @@ func UserAnswers(c *gin.Context) {
 	user := c.MustGet("currentUser").(models.User)
 	err := c.ShouldBindQuery(&answersQuery)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 

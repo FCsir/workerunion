@@ -20,7 +20,7 @@ func (u subCommentStatus) Value() (driver.Value, error) {
 
 type SubComment struct {
 	BaseModel
-	Status subCommentStatus `sql:"type:sub_comment_status"`
+	Status subCommentStatus `gorm:"type:varchar(100)"`
 
 	Content string `gorm:"type:text"`
 

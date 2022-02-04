@@ -31,23 +31,28 @@ func ReadPost(c *gin.Context) {
 }
 
 type AddPostForm struct {
-	Content string `form:"content"`
-	Title   string `form:"title" binding:"required"`
+	Content   string `form:"content" binding:"required"`
+	Title     string `form:"title" binding:"required"`
+	Status    string `form:"status"`
+	IsAnymous bool   `form:"is_anymous"`
+	Tags      string `form:"tags"`
 }
 
 func AddPost(c *gin.Context) {
 	var postForm AddPostForm
 	err := c.ShouldBind(&postForm)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	user := c.MustGet("currentUser").(models.User)
 	post := models.Post{
-		Status:    "draft",
+		Status:    models.PostStatus(postForm.Status),
 		Content:   postForm.Content,
 		Title:     postForm.Title,
+		Tags:      postForm.Tags,
+		IsAnymous: postForm.IsAnymous,
 		Readcount: 0,
 		UserID:    user.ID,
 	}

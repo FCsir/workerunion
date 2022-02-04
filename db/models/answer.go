@@ -20,7 +20,7 @@ func (u answerStatus) Value() (driver.Value, error) {
 
 type Answer struct {
 	BaseModel
-	Status answerStatus `sql:"type:answer_status"`
+	Status answerStatus `gorm:"type:varchar(100)"`
 
 	Content string `gorm:"type:text"`
 

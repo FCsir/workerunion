@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -15,28 +16,31 @@ func Jwt() gin.HandlerFunc {
 		// get token and verify token
 		authorization := c.Request.Header["Authorization"]
 		token := strings.Split(authorization[0], " ")[1]
+		fmt.Println("----token--", token)
 		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "no token"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "no token"})
+			return
 		}
 
 		claims, err := pkg.ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "parse token error"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "parse token error"})
+			return
 		}
+		fmt.Println("-----claims err", err, err != nil, 1)
 		if claims.ExpiresAt < time.Now().Unix() {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "token expired"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "token expired"})
+			return
 		}
 
+		fmt.Println("login--", claims.UserId)
 		query := map[string]interface{}{
 			"id": claims.UserId,
 		}
 		users := handlers.FindUsers(query)
 		if len(users) == 0 {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "no account find"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "no account find"})
+			return
 		}
 		user := users[0]
 		c.Set("currentUser", user)

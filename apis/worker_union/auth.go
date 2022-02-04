@@ -133,13 +133,18 @@ func Login(c *gin.Context) {
 
 	hashPassword := pkg.GetMD5Hash(form.Password)
 
-	users := handlers.FindUsers(map[string]interface{}{"password": hashPassword, "email": form.Email})
+	users := handlers.FindUsers(map[string]interface{}{"email": form.Email})
 	if len(users) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "该用户不存在"})
 		return
 	}
 
-	token, err := pkg.GenerateToken(12, form.Email)
+	if users[0].Password != hashPassword {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "密码错误"})
+		return
+	}
+
+	token, err := pkg.GenerateToken(users[0].ID, form.Email)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

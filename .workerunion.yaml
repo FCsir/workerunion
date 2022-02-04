@@ -8,7 +8,7 @@ database:
 
 jwt:
   secret: "owhefowfow"
-  expire_hour: 3
+  expire_hour: 720
 
 redis:
   port: "6379"

@@ -16,6 +16,20 @@ func Index(c *gin.Context) {
 
 }
 
+func RecommendationPosts(c *gin.Context) {
+	var query = map[string]interface{}{
+		"status": "publish",
+	}
+	var orders = []map[string]string{
+		{
+			"type": "desc",
+			"name": "created_at",
+		},
+	}
+	posts := handlers.FindPosts(query, orders, 20, 0)
+	c.JSON(http.StatusOK, gin.H{"data": posts})
+}
+
 func LatestPosts(c *gin.Context) {
 	var query = map[string]interface{}{
 		"status": "publish",

@@ -1,6 +1,9 @@
 package models
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
+	"time"
+)
 
 type userStatus string
 
@@ -20,12 +23,14 @@ func (u userStatus) Value() (driver.Value, error) {
 
 type User struct {
 	BaseModel
-	NickName string
-	Email    string
-	Password string
-	Gender   string
+	NickName string     `gorm:"type:varchar(100)"`
+	Email    string     `gorm:"type:varchar(100)"`
+	Password string     `gorm:"type:varchar(3000)"`
+	Gender   string     `gorm:"type:varchar(100)"`
+	Phone    string     `gorm:"type:varchar(100)"`
+	Birth    *time.Time `json:"birth"`
 	// register active
-	Status userStatus `sql:"type:user_status"`
+	Status userStatus `gorm:"type:varchar(100)"`
 
 	Posts       []Post       `gorm:"foreignKey:UserID"`
 	Answers     []Answer     `gorm:"foreignKey:UserID"`

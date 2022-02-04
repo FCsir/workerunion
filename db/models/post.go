@@ -2,32 +2,34 @@ package models
 
 import "database/sql/driver"
 
-type postStatus string
+type PostStatus string
 
 const (
-	publish postStatus = "publish"
-	draft   postStatus = "draft"
-	cancel  postStatus = "cancel"
+	publish PostStatus = "publish"
+	draft   PostStatus = "draft"
+	cancel  PostStatus = "cancel"
 )
 
-func (u *postStatus) Scan(value interface{}) error {
-	*u = postStatus(value.([]byte))
+func (u *PostStatus) Scan(value interface{}) error {
+	*u = PostStatus(value.([]byte))
 	return nil
 }
 
-func (u postStatus) Value() (driver.Value, error) {
+func (u PostStatus) Value() (driver.Value, error) {
 	return string(u), nil
 }
 
 type Post struct {
 	BaseModel
-	Status postStatus `sql:"type:post_status"`
+	Status PostStatus `gorm:"type:varchar(100)" json:"status"`
 
-	Content   string `gorm:"type:text"`
-	Title     string
-	Readcount uint
+	Content   string `gorm:"type:text" json:"content"`
+	Title     string `gorm:"type:varchar(2000)" json:"title"`
+	Readcount uint   `json:"readCount"`
+	IsAnymous bool
+	Tags      string `gorm:"type:varchar(2000)" json:"tags"`
 
-	UserID uint
+	UserID uint `json:"userID"`
 
 	Answers []Answer `gorm:"foreignKey:PostID"`
 }
